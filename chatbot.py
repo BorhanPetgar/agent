@@ -1,31 +1,32 @@
-import os
-import httpx
 from langchain_community.llms import Ollama
+from langchain.schema import HumanMessage, SystemMessage
 
-"""
-from langchain_community.llms import Ollama
 
-llm = Ollama(model="llama2")
-
-llm.invoke("tell me about partial functions in python")
-"""
 class ChatBot:
     def __init__(self, system=''):
         self.system = system
         self.messages = []
+        if self.system:
+            self.messages.append(SystemMessage(self.system))
+        
+        # Initialize Ollama with the desired model (e.g., "llama2")
+        # self.llm = Ollama(model="deepseek-r1:1.5b")
         self.llm = Ollama(model="llama2")
 
-        if self.system:
-            self.messages.append({'role': 'system', 'content': system})
-
     def __call__(self, message):
-        self.messages.append({'role': 'user', 'content': message})
-        result = self.execute()
-        self.messages.append({'role': 'assistant', 'content': result})
+        self.messages.append(HumanMessage(message))
+        
+        result = self.execute_react()
+        
+        self.messages.append(result)
         return result
-    
-    def execute(self):
-        result = self.llm.invoke(self.messages)
-        # completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=self.messages)
-        return result
-    
+
+    def execute_react(self):
+        response = self.llm.invoke(self.messages)
+        return response
+
+# Example usage
+if __name__ == "__main__":
+    bot = ChatBot(system="You are a helpful assistant that uses the ReAct framework.")
+    response = bot("What is the capital of France?")
+    print(response)
